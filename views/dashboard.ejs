@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="dashboard-bg">
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo">LMS</span>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="active"><span>Dashboard</span></li>
+          <li><span>Assignments</span></li>
+          <li><span>Submissions</span></li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <img src="/avatar.png" alt="avatar" class="sidebar-avatar">
+        <span class="sidebar-username"><%= user.username %></span>
+      </div>
+    </aside>
+    <div class="main-content">
+      <header class="dashboard-header">
+        <h2>Welcome, <%= user.username %> (<%= user.role %>)</h2>
+        <a href="/logout" class="btn logout">Logout</a>
+      </header>
+      <main class="dashboard-main-cards">
+        <section class="dashboard-card highlight-card">
+          <h3>Hello <%= user.username %>!</h3>
+          <p>You have <%= userAssignments.length %> assignments.</p>
+        </section>
+        <section class="dashboard-card">
+          <h3>Assignments</h3>
+          <ul class="list">
+            <% userAssignments.forEach(a => { %>
+              <li>
+                <span><%= a.title %></span>
+                <% if (user.role === 'student') { %>
+                  <a href="/assignment/<%= a.id %>" class="btn small">Submit</a>
+                <% } %>
+              </li>
+            <% }) %>
+          </ul>
+        </section>
+        <section class="dashboard-card">
+          <h3>Submissions</h3>
+          <ul class="list">
+            <% userSubmissions.forEach(s => { %>
+              <li>
+                Assignment <%= s.assignmentId %> by <%= s.student %> - <%= s.content %>
+              </li>
+            <% }) %>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

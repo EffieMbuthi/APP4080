@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Submit Assignment</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="centered-container">
+  <div class="card">
+    <h2><%= assignment.title %></h2>
+    <form method="post" action="/assignment/<%= assignment.id %>/submit">
+      <textarea name="content" required class="input textarea"></textarea>
+      <button type="submit" class="btn">Submit</button>
+    </form>
+    <a href="/dashboard" class="btn small">Back</a>
+  </div>
+</body>
+</html>
