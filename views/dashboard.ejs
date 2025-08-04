@@ -1,60 +1,138 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard</title>
+  <title>Whiteboard - Dashboard</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body class="dashboard-bg">
   <div class="dashboard-layout">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <span class="logo">LMS</span>
+        <span class="logo">Whiteboard</span>
       </div>
       <nav class="sidebar-nav">
         <ul>
-          <li class="active"><span>Dashboard</span></li>
-          <li><span>Assignments</span></li>
-          <li><span>Submissions</span></li>
+          <li class="<%= (currentPage || '') === 'home' ? 'active' : '' %>"><a href="/dashboard">Home</a></li>
+          <li class="<%= (currentPage || '') === 'courses' ? 'active' : '' %>"><a href="/courses">Courses</a></li>
+          <li class="<%= (currentPage || '') === 'assignments' ? 'active' : '' %>"><a href="/assignments">Assignments</a></li>
+          <li class="<%= !currentPage || currentPage === 'profile' ? 'active' : '' %>"><a href="/profile">Profile</a></li>
+          <li><a href="/logout">Logout</a></li>
         </ul>
       </nav>
-      <div class="sidebar-footer">
-        <img src="/avatar.png" alt="avatar" class="sidebar-avatar">
-        <span class="sidebar-username"><%= user.username %></span>
-      </div>
     </aside>
     <div class="main-content">
       <header class="dashboard-header">
-        <h2>Welcome, <%= user.username %> (<%= user.role %>)</h2>
-        <a href="/logout" class="btn logout">Logout</a>
+        <div class="user-profile">
+          <div class="user-avatar">
+            <span class="avatar-icon">👤</span>
+          </div>
+          <div class="user-info">
+            <div class="username"><%= user.username %></div>
+            <div class="user-role"><%= user.role %></div>
+          </div>
+        </div>
       </header>
-      <main class="dashboard-main-cards">
-        <section class="dashboard-card highlight-card">
-          <h3>Hello <%= user.username %>!</h3>
-          <p>You have <%= userAssignments.length %> assignments.</p>
-        </section>
-        <section class="dashboard-card">
-          <h3>Assignments</h3>
-          <ul class="list">
-            <% userAssignments.forEach(a => { %>
-              <li>
-                <span><%= a.title %></span>
-                <% if (user.role === 'student') { %>
-                  <a href="/assignment/<%= a.id %>" class="btn small">Submit</a>
-                <% } %>
-              </li>
-            <% }) %>
-          </ul>
-        </section>
-        <section class="dashboard-card">
-          <h3>Submissions</h3>
-          <ul class="list">
-            <% userSubmissions.forEach(s => { %>
-              <li>
-                Assignment <%= s.assignmentId %> by <%= s.student %> - <%= s.content %>
-              </li>
-            <% }) %>
-          </ul>
-        </section>
+      <main class="dashboard-main">
+        <% if ((currentPage || '') === 'courses') { %>
+          <!-- Courses Page -->
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <span class="avatar-icon">📚</span>
+              </div>
+              <div class="profile-info">
+                <h2>Your Courses</h2>
+                <div class="profile-username"><%= user.username %></div>
+                <div class="profile-role">Role: <%= user.role %></div>
+              </div>
+            </div>
+            <hr class="profile-separator">
+            <div class="profile-content">
+              <div class="profile-section">
+                <h3>Course List</h3>
+                <ul class="course-list">
+                  <% if (userCourses && userCourses.length > 0) { %>
+                    <% userCourses.forEach(course => { %>
+                      <li><%= course.code %> - <%= course.title %></li>
+                    <% }) %>
+                  <% } else { %>
+                    <li>No courses available</li>
+                  <% } %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        <% } else if ((currentPage || '') === 'assignments') { %>
+          <!-- Assignments Page -->
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <span class="avatar-icon">📝</span>
+              </div>
+              <div class="profile-info">
+                <h2>Your Assignments</h2>
+                <div class="profile-username"><%= user.username %></div>
+                <div class="profile-role">Role: <%= user.role %></div>
+              </div>
+            </div>
+            <hr class="profile-separator">
+            <div class="profile-content">
+              <div class="profile-section">
+                <h3>Assignment List</h3>
+                <ul class="assignment-list">
+                  <% if (userAssignments && userAssignments.length > 0) { %>
+                    <% userAssignments.forEach(assignment => { %>
+                      <li><%= assignment.title %>. (Course: <%= assignment.courseCode || 'N/A' %>)</li>
+                    <% }) %>
+                  <% } else { %>
+                    <li>No assignments available</li>
+                  <% } %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        <% } else { %>
+          <!-- Profile Page (Default) -->
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <span class="avatar-icon">👤</span>
+              </div>
+              <div class="profile-info">
+                <h2>Profile</h2>
+                <div class="profile-username"><%= user.username %></div>
+                <div class="profile-role">Role: <%= user.role %></div>
+              </div>
+            </div>
+            <hr class="profile-separator">
+            <div class="profile-content">
+              <div class="profile-section">
+                <h3>Your Courses</h3>
+                <ul class="course-list">
+                  <% if (userCourses && userCourses.length > 0) { %>
+                    <% userCourses.forEach(course => { %>
+                      <li><%= course.code %></li>
+                    <% }) %>
+                  <% } else { %>
+                    <li>No courses assigned</li>
+                  <% } %>
+                </ul>
+              </div>
+              <div class="profile-section">
+                <h3>Your Assignments</h3>
+                <ul class="assignment-list">
+                  <% if (userAssignments && userAssignments.length > 0) { %>
+                    <% userAssignments.forEach(assignment => { %>
+                      <li><%= assignment.title %>. (Course: <%= assignment.courseCode || 'N/A' %>)</li>
+                    <% }) %>
+                  <% } else { %>
+                    <li>No assignments available</li>
+                  <% } %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        <% } %>
       </main>
     </div>
   </div>
