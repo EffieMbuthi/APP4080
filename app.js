@@ -65,3 +65,6 @@ app.get('/logout', (req, res) => {
 });
 
 app.listen(3000, () => console.log('Mini LMS running on http://localhost:3000'));
+app.use((req, res) => {
+  res.status(404).send('404 - Page Not Found');
+});
