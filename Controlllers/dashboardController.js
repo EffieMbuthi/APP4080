@@ -23,7 +23,7 @@ const enrolledCourses = allCourses.filter(course =>
 enrollments.some(e => e.courseId === course.id)
 );
 
-// Get assignments for enrolled courses
+// Get assignments for enrolled courses only
 const courseAssignments = enrolledCourses.map(course => ({
 course,
 assignments: getAssignmentsByCourse(course.id)
@@ -82,18 +82,18 @@ studentSubmissions,
 notifications,
 recentActivity,
 userRole: 'student',
-userCourses: enrolledCourses,
+userCourses: enrolledCourses, // Only show enrolled courses
 userAssignments: allAssignments,
-currentPage: 'profile'
+currentPage: 'home'
 };
 }
 
 function getInstructorDashboard(user, allCourses) {
-// Get courses created by this instructor
-const createdCourses = allCourses.filter(course => course.instructor === user.username);
+// Get courses assigned to this instructor
+const assignedCourses = allCourses.filter(course => course.instructor === user.username);
 
-// Get assignments for created courses
-const courseAssignments = createdCourses.map(course => ({
+// Get assignments for assigned courses
+const courseAssignments = assignedCourses.map(course => ({
 course,
 assignments: getAssignmentsByCourse(course.id)
 }));
@@ -108,7 +108,7 @@ courseCode: ca.course.code
 }))
 );
 
-// Get all submissions across all courses
+// Get all submissions across all assigned courses
 const allSubmissions = allAssignments.flatMap(assignment => {
 const submissions = getAllSubmissions();
 return submissions
@@ -123,7 +123,7 @@ assignmentId: assignment.id
 
 // Calculate stats
 const stats = {
-createdCourses: createdCourses.length,
+assignedCourses: assignedCourses.length,
 totalAssignments: allAssignments.length,
 totalSubmissions: allSubmissions.length,
 averageSubmissionsPerAssignment: allAssignments.length > 0
@@ -133,7 +133,7 @@ averageSubmissionsPerAssignment: allAssignments.length > 0
 
 // Get recent activity
 const recentActivity = [
-`Created ${createdCourses.length} courses`,
+`Assigned to ${assignedCourses.length} courses`,
 `Posted ${allAssignments.length} assignments`,
 `Received ${allSubmissions.length} submissions`
 ];
@@ -141,37 +141,48 @@ const recentActivity = [
 return {
 user,
 stats,
-createdCourses,
+assignedCourses,
 courseAssignments,
 allAssignments,
 allSubmissions,
 recentActivity,
 userRole: 'instructor',
-userCourses: createdCourses,
+userCourses: assignedCourses, // Only show assigned courses
 userAssignments: allAssignments,
-currentPage: 'profile'
+currentPage: 'home'
 };
 }
 
 function getAdminDashboard(user, allCourses) {
-// Get all courses in the system (no assignment data)
+// Get all courses in the system
 const coursesWithBasicInfo = allCourses.map(course => ({
 ...course,
 instructorName: course.instructor
 }));
 
-// Calculate basic stats (no assignment/submission data)
+// Get all assignments
+const allAssignments = getAllAssignments().map(assignment => {
+const course = allCourses.find(c => c.id === assignment.courseId);
+return {
+...assignment,
+courseCode: course ? course.code : 'N/A',
+courseTitle: course ? course.title : 'N/A'
+};
+});
+
+// Calculate stats
 const stats = {
 totalCourses: allCourses.length,
 totalInstructors: 3, // We have 3 instructors
 totalStudents: 2, // We have 2 students
+totalAssignments: allAssignments.length,
 activeCourses: allCourses.length // All courses are active
 };
 
-// Get recent activity (no assignment references)
+// Get recent activity
 const recentActivity = [
 `Managing ${allCourses.length} courses in the system`,
-`Overseeing course catalog and instructor assignments`,
+`Overseeing ${allAssignments.length} assignments`,
 `System administration and user management`
 ];
 
@@ -179,13 +190,12 @@ return {
 user,
 stats,
 allCourses: coursesWithBasicInfo,
-allAssignments: [], // Explicitly set to empty array for admin
-allSubmissions: [], // Explicitly set to empty array for admin
+allAssignments,
 recentActivity,
 userRole: 'admin',
-userCourses: allCourses,
-userAssignments: [],
-currentPage: 'profile'
+userCourses: allCourses, // Show all courses
+userAssignments: allAssignments,
+currentPage: 'home'
 };
 }
 

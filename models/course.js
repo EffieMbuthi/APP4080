@@ -1,11 +1,5 @@
 // In-memory storage for courses
-let courses = [
-  { id: 1, code: 'ENG699', title: 'Advanced English Literature', instructor: 'instructor2' },
-  { id: 2, code: 'ENG1001', title: 'Introduction to English', instructor: 'instructor2' },
-  { id: 3, code: 'ENG4044', title: 'Creative Writing', instructor: 'instructor2' },
-  { id: 4, code: 'MATH101', title: 'Basic Mathematics', instructor: 'instructor1' },
-  { id: 5, code: 'SCI201', title: 'Introduction to Science', instructor: 'instructor3' }
-];
+let courses = [];
 
 function getAll() {
   return courses;

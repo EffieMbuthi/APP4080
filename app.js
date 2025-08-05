@@ -34,36 +34,33 @@ app.get('/dashboard', (req, res) => {
   res.render('dashboard', dashboardData);
 });
 
-// Profile page (same as dashboard for now)
-app.get('/profile', (req, res) => {
-  if (!req.session.user) return res.redirect('/');
-  const dashboardData = getDashboardData(req.session.user);
-  res.render('dashboard', dashboardData);
-});
-
 // Courses page
 app.get('/courses', (req, res) => {
   if (!req.session.user) return res.redirect('/');
   const user = req.session.user;
   let userCourses = [];
+  const enrollment = require('./models/enrollment');
   
   if (user.role === 'student') {
-    // Get enrolled courses for students
-    const enrollments = require('./models/enrollment').getEnrollmentsByStudent(user.username);
-    userCourses = courses.getAll().filter(course =>
-      enrollments.some(e => e.courseId === course.id)
-    );
+    // Students see all courses but only enrolled ones are marked
+    userCourses = courses.getAll();
   } else if (user.role === 'instructor') {
-    // Get courses created by instructor
+    // Instructors see only courses assigned to them
     userCourses = courses.getAll().filter(course => course.instructor === user.username);
   } else if (user.role === 'admin') {
     // Admin sees all courses
     userCourses = courses.getAll();
   }
   
+  // Get enrollment status for each course (for students)
+  const coursesWithEnrollment = userCourses.map(course => ({
+    ...course,
+    isEnrolled: user.role === 'student' ? enrollment.isEnrolled(course.id, user.username) : false
+  }));
+  
   res.render('dashboard', { 
     user, 
-    userCourses, 
+    userCourses: coursesWithEnrollment, 
     userAssignments: [],
     currentPage: 'courses'
   });
@@ -74,33 +71,109 @@ app.get('/assignments', (req, res) => {
   if (!req.session.user) return res.redirect('/');
   const user = req.session.user;
   let userAssignments = [];
+  let instructorCourses = [];
   
   if (user.role === 'student') {
-    // Get assignments for enrolled courses
+    // Students see assignments only for enrolled courses
     const enrollments = require('./models/enrollment').getEnrollmentsByStudent(user.username);
     const enrolledCourses = courses.getAll().filter(course =>
       enrollments.some(e => e.courseId === course.id)
     );
     userAssignments = assignments.getAll().filter(assignment =>
       enrolledCourses.some(course => course.id === assignment.courseId)
-    );
+    ).map(assignment => {
+      const course = courses.getById(assignment.courseId);
+      return {
+        ...assignment,
+        courseCode: course ? course.code : 'N/A'
+      };
+    });
   } else if (user.role === 'instructor') {
-    // Get assignments for courses created by instructor
+    // Instructors see assignments for courses assigned to them
     const instructorCourses = courses.getAll().filter(course => course.instructor === user.username);
     userAssignments = assignments.getAll().filter(assignment =>
       instructorCourses.some(course => course.id === assignment.courseId)
-    );
+    ).map(assignment => {
+      const course = courses.getById(assignment.courseId);
+      return {
+        ...assignment,
+        courseCode: course ? course.code : 'N/A'
+      };
+    });
   } else if (user.role === 'admin') {
     // Admin sees all assignments
-    userAssignments = assignments.getAll();
+    userAssignments = assignments.getAll().map(assignment => {
+      const course = courses.getById(assignment.courseId);
+      return {
+        ...assignment,
+        courseCode: course ? course.code : 'N/A'
+      };
+    });
+  }
+  
+  // Get instructor courses for assignment creation form
+  if (user.role === 'instructor') {
+    instructorCourses = courses.getAll().filter(course => course.instructor === user.username);
   }
   
   res.render('dashboard', { 
     user, 
     userCourses: [],
     userAssignments,
+    instructorCourses,
     currentPage: 'assignments'
   });
+});
+
+// Course enrollment (for students)
+app.post('/courses/:id/enroll', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'student') return res.redirect('/');
+  const courseId = parseInt(req.params.id);
+  const enrollment = require('./models/enrollment');
+  
+  if (!enrollment.isEnrolled(courseId, req.session.user.username)) {
+    enrollment.enrollStudent(courseId, req.session.user.username);
+  }
+  
+  res.redirect('/courses');
+});
+
+// Course unenrollment (for students)
+app.post('/courses/:id/unenroll', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'student') return res.redirect('/');
+  const courseId = parseInt(req.params.id);
+  const enrollment = require('./models/enrollment');
+  
+  enrollment.unenrollStudent(courseId, req.session.user.username);
+  res.redirect('/courses');
+});
+
+// Create course (for admin only)
+app.post('/courses/create', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') return res.redirect('/');
+  
+  const { code, title, instructor } = req.body;
+  if (code && title && instructor) {
+    courses.create({ code, title, instructor });
+  }
+  
+  res.redirect('/courses');
+});
+
+// Create assignment (for instructors only)
+app.post('/assignments/create', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'instructor') return res.redirect('/');
+  
+  const { title, description, courseId } = req.body;
+  if (title && description && courseId) {
+    // Verify instructor is assigned to this course
+    const course = courses.getById(parseInt(courseId));
+    if (course && course.instructor === req.session.user.username) {
+      assignments.create({ title, description, courseId: parseInt(courseId) });
+    }
+  }
+  
+  res.redirect('/assignments');
 });
 
 // Assignment submission (students)

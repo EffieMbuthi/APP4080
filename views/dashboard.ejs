@@ -15,7 +15,6 @@
           <li class="<%= (currentPage || '') === 'home' ? 'active' : '' %>"><a href="/dashboard">Home</a></li>
           <li class="<%= (currentPage || '') === 'courses' ? 'active' : '' %>"><a href="/courses">Courses</a></li>
           <li class="<%= (currentPage || '') === 'assignments' ? 'active' : '' %>"><a href="/assignments">Assignments</a></li>
-          <li class="<%= !currentPage || currentPage === 'profile' ? 'active' : '' %>"><a href="/profile">Profile</a></li>
           <li><a href="/logout">Logout</a></li>
         </ul>
       </nav>
@@ -41,24 +40,66 @@
                 <span class="avatar-icon">📚</span>
               </div>
               <div class="profile-info">
-                <h2>Your Courses</h2>
+                <h2>Courses</h2>
                 <div class="profile-username"><%= user.username %></div>
                 <div class="profile-role">Role: <%= user.role %></div>
               </div>
             </div>
             <hr class="profile-separator">
             <div class="profile-content">
+              <% if (user.role === 'admin') { %>
+                <!-- Admin Course Management -->
+                <div class="profile-section">
+                  <h3>Create New Course</h3>
+                  <form action="/courses/create" method="POST" style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                      <input type="text" name="code" placeholder="Course Code" required style="flex: 1;">
+                      <input type="text" name="title" placeholder="Course Title" required style="flex: 2;">
+                      <select name="instructor" required style="flex: 1;">
+                        <option value="">Select Instructor</option>
+                        <option value="instructor1">instructor1</option>
+                        <option value="instructor2">instructor2</option>
+                        <option value="instructor3">instructor3</option>
+                      </select>
+                    </div>
+                    <button type="submit" style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Create Course</button>
+                  </form>
+                </div>
+              <% } %>
+              
               <div class="profile-section">
                 <h3>Course List</h3>
-                <ul class="course-list">
-                  <% if (userCourses && userCourses.length > 0) { %>
+                <% if (userCourses && userCourses.length > 0) { %>
+                  <ul class="course-list" style="list-style: none; padding: 0;">
                     <% userCourses.forEach(course => { %>
-                      <li><%= course.code %> - <%= course.title %></li>
+                      <li style="border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <div>
+                            <strong><%= course.code %> - <%= course.title %></strong>
+                            <br>
+                            <small>Instructor: <%= course.instructor %></small>
+                          </div>
+                          <% if (user.role === 'student') { %>
+                            <div>
+                              <% if (course.isEnrolled) { %>
+                                <form action="/courses/<%= course.id %>/unenroll" method="POST" style="display: inline;">
+                                  <button type="submit" style="background: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">Unenroll</button>
+                                </form>
+                                <span style="color: green; margin-left: 10px;">✓ Enrolled</span>
+                              <% } else { %>
+                                <form action="/courses/<%= course.id %>/enroll" method="POST" style="display: inline;">
+                                  <button type="submit" style="background: #28a745; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">Enroll</button>
+                                </form>
+                              <% } %>
+                            </div>
+                          <% } %>
+                        </div>
+                      </li>
                     <% }) %>
-                  <% } else { %>
-                    <li>No courses available</li>
-                  <% } %>
-                </ul>
+                  </ul>
+                <% } else { %>
+                  <p>No courses available</p>
+                <% } %>
               </div>
             </div>
           </div>
@@ -70,48 +111,102 @@
                 <span class="avatar-icon">📝</span>
               </div>
               <div class="profile-info">
-                <h2>Your Assignments</h2>
+                <h2>Assignments</h2>
                 <div class="profile-username"><%= user.username %></div>
+                <div class="profile-role">Role: <%= user.role %></div>
+              </div>
+            </div>
+            <hr class="profile-separator">
+            <div class="profile-content">
+              <% if (user.role === 'instructor') { %>
+                <!-- Instructor Assignment Creation -->
+                <div class="profile-section">
+                  <h3>Create New Assignment</h3>
+                  <form action="/assignments/create" method="POST" style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                      <input type="text" name="title" placeholder="Assignment Title" required style="flex: 1;">
+                      <select name="courseId" required style="flex: 1;">
+                        <option value="">Select Course</option>
+                        <% if (instructorCourses && instructorCourses.length > 0) { %>
+                          <% instructorCourses.forEach(course => { %>
+                            <option value="<%= course.id %>"><%= course.code %> - <%= course.title %></option>
+                          <% }) %>
+                        <% } %>
+                      </select>
+                    </div>
+                    <textarea name="description" placeholder="Assignment Description" required style="width: 100%; height: 80px; margin-bottom: 10px; padding: 8px;"></textarea>
+                    <button type="submit" style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Create Assignment</button>
+                  </form>
+                </div>
+              <% } %>
+              
+              <div class="profile-section">
+                <h3>Assignment List</h3>
+                <% if (userAssignments && userAssignments.length > 0) { %>
+                  <ul class="assignment-list" style="list-style: none; padding: 0;">
+                    <% userAssignments.forEach(assignment => { %>
+                      <li style="border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; background: white;">
+                        <div>
+                          <strong><%= assignment.title %></strong>
+                          <br>
+                          <small>Course: <%= assignment.courseCode || 'N/A' %></small>
+                          <br>
+                          <small>Description: <%= assignment.description %></small>
+                        </div>
+                      </li>
+                    <% }) %>
+                  </ul>
+                <% } else { %>
+                  <p>No assignments available</p>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% } else { %>
+          <!-- Home Page (Default) -->
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <span class="avatar-icon">🏠</span>
+              </div>
+              <div class="profile-info">
+                <h2>Welcome, <%= user.username %></h2>
                 <div class="profile-role">Role: <%= user.role %></div>
               </div>
             </div>
             <hr class="profile-separator">
             <div class="profile-content">
               <div class="profile-section">
-                <h3>Assignment List</h3>
-                <ul class="assignment-list">
-                  <% if (userAssignments && userAssignments.length > 0) { %>
-                    <% userAssignments.forEach(assignment => { %>
-                      <li><%= assignment.title %>. (Course: <%= assignment.courseCode || 'N/A' %>)</li>
-                    <% }) %>
-                  <% } else { %>
-                    <li>No assignments available</li>
-                  <% } %>
-                </ul>
+                <h3>Quick Overview</h3>
+                <% if (user.role === 'admin') { %>
+                  <p>As an administrator, you can:</p>
+                  <ul>
+                    <li>Create and manage courses</li>
+                    <li>Assign instructors to courses</li>
+                    <li>View all system activities</li>
+                  </ul>
+                <% } else if (user.role === 'instructor') { %>
+                  <p>As an instructor, you can:</p>
+                  <ul>
+                    <li>View your assigned courses</li>
+                    <li>Post assignments to your courses</li>
+                    <li>Review student submissions</li>
+                  </ul>
+                <% } else if (user.role === 'student') { %>
+                  <p>As a student, you can:</p>
+                  <ul>
+                    <li>Browse all available courses</li>
+                    <li>Enroll in courses</li>
+                    <li>View and submit assignments for enrolled courses</li>
+                  </ul>
+                <% } %>
               </div>
-            </div>
-          </div>
-        <% } else { %>
-          <!-- Profile Page (Default) -->
-          <div class="profile-card">
-            <div class="profile-header">
-              <div class="profile-avatar">
-                <span class="avatar-icon">👤</span>
-              </div>
-              <div class="profile-info">
-                <h2>Profile</h2>
-                <div class="profile-username"><%= user.username %></div>
-                <div class="profile-role">Role: <%= user.role %></div>
-              </div>
-            </div>
-            <hr class="profile-separator">
-            <div class="profile-content">
               <div class="profile-section">
                 <h3>Your Courses</h3>
                 <ul class="course-list">
                   <% if (userCourses && userCourses.length > 0) { %>
                     <% userCourses.forEach(course => { %>
-                      <li><%= course.code %></li>
+                      <li><%= course.code %> - <%= course.title %></li>
                     <% }) %>
                   <% } else { %>
                     <li>No courses assigned</li>

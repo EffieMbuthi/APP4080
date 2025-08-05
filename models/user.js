@@ -5,6 +5,5 @@ module.exports = [
   { username: 'instructor1', role: 'instructor' },
   { username: 'instructor2', role: 'instructor' },
   { username: 'instructor3', role: 'instructor' },
-  { username: 'admin1', role: 'admin' },
-  { username: 'admin2', role: 'admin' }
+  { username: 'admin1', role: 'admin' }
 ];

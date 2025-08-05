@@ -1,9 +1,5 @@
 // In-memory storage for enrollments
-let enrollments = [
-  { courseId: 1, student: 'student1' },
-  { courseId: 2, student: 'student1' },
-  { courseId: 1, student: 'student2' }
-];
+let enrollments = [];
 
 function enrollStudent(courseId, student) {
   enrollments.push({ courseId: parseInt(courseId), student });
