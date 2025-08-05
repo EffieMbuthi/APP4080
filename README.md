@@ -10,3 +10,5 @@ Group Collaboration Task
 3. Open your browser and visit: http://localhost:3000
 
 4. Make sure Node.js is installed. Download from [nodejs.org](https://nodejs.org/).
+
+5. Easy as 123 
