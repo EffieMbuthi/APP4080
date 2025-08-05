@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "code": "BUS1010",
+    "title": "Introduction to Business Management",
+    "instructor": "instructor1"
+  },
+  {
+    "id": 2,
+    "code": "BUS4015",
+    "title": "Advanced Marketing & Strategy",
+    "instructor": "instructor1"
+  }
+]
