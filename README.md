@@ -1,5 +1,6 @@
 # APP4080
 Group Collaboration Task
+Below is how you get started;
 
 ## Getting Started
 
@@ -11,4 +12,4 @@ Group Collaboration Task
 
 4. Make sure Node.js is installed. Download from [nodejs.org](https://nodejs.org/).
 
-5. Easy as 123 
+   
